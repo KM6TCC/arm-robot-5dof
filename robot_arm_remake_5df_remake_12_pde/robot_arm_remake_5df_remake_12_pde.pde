@@ -1,7 +1,3 @@
-import org.dishevelled.processing.frames.*;
-
-import hpglgraphics.*;
-
 /**
  * ControlP5 Slider set value
  * changes the value of a slider on keyPressed
@@ -92,7 +88,7 @@ int parktec=90;
 int parkabove=90;
 int parktop =90;
 int parkclaw = 96;
-
+double distpcam =700;
 int vccPin = 8;
 color off = color(255, 0, 0);
 color on = color(8, 52, 255);
@@ -100,7 +96,7 @@ color on = color(8, 52, 255);
 
 
 public void setup() {  
-  size(720, 600,P3D);
+  size(720, 600, P3D);
   surface.setTitle("arm-rbot-5dof");
   //
   surface.setResizable(true);
@@ -111,7 +107,7 @@ public void setup() {
   ambientLight(105, 105, 130);
   location=false;
   smooth(233);
-  cam = new PeasyCam(this, 700);
+  cam = new PeasyCam(this, distpcam);
   cam.setMinimumDistance(-400);
   cam.setMaximumDistance(700);
   //cam.setP
@@ -133,15 +129,20 @@ public void setup() {
 
   console = cp5.addConsole(myTextarea);
 
-
-  cp5.addButton("cam").setPosition(5, 5).setSize(40, 40).setLabel("on/off").setColorBackground(color(off));
-  cp5.addButton("cam_on").setPosition(45, 5).setLabel("On").setSize(20, 40).setVisible(false);  
-  cp5.addButton("cam_off").setPosition(45, 5).setLabel("Off").setSize(20, 40).setVisible(true); 
+  cp5.addButton("VCC").setPosition(5, 5).setSize(40, 40).setLabel("on/off").setColorBackground(color(off));
+  cp5.addButton("on").setPosition(45, 5).setLabel("On").setSize(20, 40).setVisible(false);  
+  cp5.addButton("off").setPosition(45, 5).setLabel("Off").setSize(20, 40).setVisible(true);  
+  
+  cp5.addButton("cam").setPosition(600, 550).setSize(40, 20).setLabel("cam lock").setColorBackground(color(off));
+  cp5.addButton("cam_on").setPosition(600, 570).setLabel("off").setSize(20, 10).setVisible(true).setMouseOver(true).setColorBackground(color(off));  
+  cp5.addButton("cam_off").setPosition(620, 570).setLabel("on").setSize(20, 10).setVisible(true).setMouseOver(true).setColorBackground(color(on)); 
+  
     
-  cp5.addButton("modes").setPosition(600, 355).setSize(40, 40).setLabel("on/off").setColorBackground(color(off));
-  cp5.addButton("PitchRoatation").setPosition(670, 355).setLabel("PitchRotataion").setSize(20, 40).setVisible(false);  
-  cp5.addButton("FreeRotation").setPosition(670, 355).setLabel("FreeRotation").setSize(20, 40).setVisible(false);  
-  cp5.addButton("RollRotation").setPosition(670, 355).setLabel("RollRotation").setSize(20, 40).setVisible(false);  
+  cp5.addButton("modes").setPosition(600, 355).setSize(40, 40).setLabel("views").setColorBackground(color(off));
+  cp5.addButton("PitchRoatation").setPosition(600, 355).setLabel("PitchRotataion").setSize(20, 40).setVisible(false);  
+  cp5.addButton("FreeRotation").setPosition(600, 355).setLabel("FreeRotation").setSize(20, 40).setVisible(false);  
+  cp5.addButton("RollRotation").setPosition(600, 355).setLabel("RollRotation").setSize(20, 40).setVisible(false);
+  
   cp5.addButton("getpos").setLabel("GET POS").setPosition(5, 295).setSize(40, 30).update();  
   cp5.addButton("con").setPosition(5, 225).setSize(40, 30);
   cp5.addButton("PARK").setPosition(5, 260).setSize(40, 30);
@@ -163,9 +164,10 @@ public void setup() {
   cp5.addSlider("smomov").setRange(0, 100).setLabel("smooth steps").setValue(smomov).setPosition(45, 60).setSize(100, 30).setVisible(false).getTriggerEvent();    
 //test slider
  //cp5.addSlider("ground").setRange(180, 0).setValue(ground).setNumberOfTickMarks(180).setPosition(75, 365).setSize(470, 30).getTriggerEvent();  
-  cp5.addSlider("dreh").setRange(180, 0).setValue(dreh).setPosition(75, 320).setSize(200, 10).getTriggerEvent();
+// cp5.addSlider("camdist").setRange(700, -700).setValue(distpcam).setPosition(260, 180).setSize(200, 10).getTriggerEvent();
+  
 
-  cp5.addSlider("ground").setRange(180, 0).setValue(ground).setPosition(75, 565).setSize(470, 30).getTriggerEvent();
+  cp5.addSlider("ground").setMouseOver(true).setRange(180, 0).setValue(ground).setPosition(75, 565).setSize(470, 30).getTriggerEvent();
   cp5.addTextfield("groundinput").setPosition(40, 565).setLabel("ground").setSize(30, 30).setFont(fontinput);
   cp5.addButton("setground").setPosition(5, 565).setSize(30, 30).setLabel("OK").setOn().setId(1);    
   //cp5.addSlider("ground").setRange(180, 0).setValue(ground).setPosition(75, 365).setSize(470, 30).setId(11).setVisible(false);    
@@ -207,9 +209,9 @@ public void setup() {
    //cp5.mapKeyFor(new ControlKey() {public void keyEvent() {colEllipse = color(random(255));}}, ALT,'1',SHIFT);  
   cp5.addButton("setall").setPosition(5, 330).setSize(40, 30).setLabel("OK all").setOn().setId(7); 
   addMouseWheelListener();
-/*
 
-       try {
+/*
+   try {
    if(debug) printArray(Serial.list());
    int i = Arduino.list().length;
    if (i != 0) {
@@ -245,7 +247,7 @@ public void setup() {
    
   //    arduino = new Arduino(this, Arduino.list()[1], 57600);
   //   arduino = new Arduino(this, "COM4", 57600);
-    arduino = new Arduino(this, Arduino.list()[1], 57600);
+ arduino = new Arduino(this, Arduino.list()[1], 57600);
   // arduino = new Arduino(this, "/dev/ttyACM0", 57600);
   arduino.pinMode(2, Arduino.SERVO); //ground
   arduino.pinMode(3, Arduino.SERVO);// sec
@@ -285,7 +287,7 @@ void controlEvent(ControlEvent theEvent) {
       groundinput= (String)cp5.getController("groundinput").getStringValue();
       ground= int(groundinput);
     }
-    cp5.getController("ground").setUpdate(true);
+    cp5.getController("ground").isUpdate();
     cp5.getController("ground").setValue(ground);
     draw();
     break;
@@ -452,9 +454,12 @@ void draw() {
   }
   
   if(cp5.isMouseOver()) {
+    cam.setActive(false);
     fill(hover);
-  } else {
+  }
+  else {
     fill(128);
+    cam.setActive(true);
   }
 
  
@@ -473,6 +478,7 @@ void draw() {
        // cp5.getController("ground").setColorActive(77);
         cp5.getController("ground").setUpdate(true);
         cp5.getController("ground").setValue(oground);
+    //    cp5.getController("ground").setColorValue(0);
         println(oground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + top + "\t"+ claw +"\t");
         delay(smomov);
       }
@@ -745,6 +751,25 @@ dofclaw();
   }
 
 
+
+/*
+public void ground()
+{
+if (true== cp5.getController("ground").isMouseOver())
+{
+cam.setActive(false);
+cp5.draw();
+
+}
+else
+cam.setActive(true);
+cp5.draw();
+
+
+}
+
+*/
+
 public void getpos(int theValue) 
 {
   print("ground:");
@@ -762,6 +787,29 @@ public void getpos(int theValue)
   print("claw:");
   println(claw);
 }
+
+
+
+
+public void VCC () {
+  if (true==cp5.getController("on").isVisible())
+  {
+    println("POWER OFF");
+    cp5.getController("VCC").setColorBackground(color(off));
+    cp5.getController("off").setVisible(true);
+    cp5.getController("on").setVisible(false);
+    arduino.digitalWrite(vccPin, Arduino.HIGH);
+  } else
+  {
+    println("POWER ON");
+    cp5.getController("VCC").setColorBackground(color(on));
+    cp5.getController("off").setVisible(false); 
+    cp5.getController("on").setVisible(true); 
+    arduino.digitalWrite(vccPin, Arduino.LOW);
+  }
+}
+
+
 /*
 public void setground(int theValue)
  {
@@ -809,27 +857,43 @@ public void PARK()
   cp5.getController("claw").setValue(claw);
 }
 
+public void cam_on(){
+     cam.setActive(true);
 
-public void cam () {
-  if (true==cp5.getController("cam_on").isVisible())
-  {
-    println("PeasyCam OFF");
-    cp5.getController("cam").setColorBackground(color(off));
-    cp5.getController("cam_off").setVisible(true);
-    cp5.getController("cam_on").setVisible(false);
-  //  arduino.digitalWrite(vccPin, Arduino.HIGH);
-    cam.setActive(true);
-  } else
-  {
-    println("PeasyCam ON");
-    cp5.getController("cam").setColorBackground(color(on));
-    cp5.getController("cam_off").setVisible(false); 
-    cp5.getController("cam_on").setVisible(true); 
-    cam.setActive(false);
-//    arduino.digitalWrite(vccPin, Arduino.LOW);
-  }
 }
 
+
+public void cam_off(){
+    cam.setActive(false);
+}
+
+/*
+public void cam () {
+  if ((true==cp5.getController("cam_on").isVisible()) && (false==cp5.getController("cam_off").isVisible()))
+  {
+    println("PeasyCam OFF");
+    cp5.getController("cam_on").setVisible(false);
+    cp5.getController("cam_off").setVisible(true);
+    cp5.getController("cam_off").setColorBackground(color(off));
+    cp5.getController("cam_off").setLabel(" ");
+  //  arduino.digitalWrite(vccPin, Arduino.HIGH);
+    cam.setActive(false);
+  } 
+    if ((false==cp5.getController("cam_on").isVisible()) &&(true== cp5.getController("cam_off").isVisible()))
+  {
+    println("PeasyCam ON");
+    cp5.getController("cam_off").setVisible(false); 
+    cp5.getController("cam_on").setVisible(true);
+    cp5.getController("cam_on").setColorBackground(color(on));
+    cp5.getController("cam_on").setLabel("");
+    //cp5.getController("cam").setMouseOver()
+    cam.setActive(true);
+// arduino.digitalWrite(vccPin, Arduino.LOW);
+  }
+  else
+  println("error");
+}
+*/
 public void modes () {
   if (true==cp5.getController("PitchRoatation").isVisible())
   {
