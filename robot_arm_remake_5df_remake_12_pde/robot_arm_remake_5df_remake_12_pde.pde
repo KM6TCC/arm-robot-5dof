@@ -1,3 +1,6 @@
+import cc.arduino.*;
+import org.firmata.*;
+
 /**
  * ControlP5 Slider set value
  * changes the value of a slider on keyPressed
@@ -84,10 +87,10 @@ int pabove=90;
 int ptop=90;
 int pclaw=96;
 int parkground=90;
-int parksec=130;
-int parktec=90;
+int parksec=131;
+int parktec=27;
 int parkabove=90;
-int parktop =90;
+//int parktop =90;
 int parkclaw = 96;
 float fdistance =400;
 double ddistance= 400;
@@ -459,7 +462,7 @@ void draw() {
   surface.setLocation(100, 100);
   location=true;
   }
-  
+  if(cp5.isMouseOver())
   if(cp5.isMouseOver()) {
     cam.setActive(false);
     fill(hover);
@@ -817,7 +820,12 @@ public void VCC () {
     cp5.getController("off").setVisible(false); 
     cp5.getController("on").setVisible(true); 
     arduino.digitalWrite(vccPin, Arduino.LOW);
-  }
+    arduino.servoWrite(2, parkground);
+    arduino.servoWrite(3, parksec);
+    arduino.servoWrite(4, parktec);
+    arduino.servoWrite(5, parkabove);
+    arduino.servoWrite(6, parkclaw);
+}
 }
 
 
