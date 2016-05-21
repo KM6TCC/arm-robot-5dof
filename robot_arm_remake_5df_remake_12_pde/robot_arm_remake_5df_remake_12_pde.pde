@@ -10,7 +10,8 @@ import peasy.*;
 import javax.swing.*; 
 //import remixlab.proscene.*;
 import processing.opengl.*;
-
+import java.awt.Frame;
+import java.awt.BorderLayout;
 import static javax.swing.JOptionPane.*;
 import controlP5.*;
 import cc.arduino.*;
@@ -88,7 +89,8 @@ int parktec=90;
 int parkabove=90;
 int parktop =90;
 int parkclaw = 96;
-double distpcam =700;
+float fdistance =400;
+double ddistance= 400;
 int vccPin = 8;
 color off = color(255, 0, 0);
 color on = color(8, 52, 255);
@@ -97,7 +99,7 @@ color on = color(8, 52, 255);
 
 public void setup() {  
   size(720, 600, P3D);
-  surface.setTitle("arm-rbot-5dof");
+  surface.setTitle("arm-robot-5dof");
   //
   surface.setResizable(true);
   //fullScreen(P3D,1);
@@ -107,17 +109,18 @@ public void setup() {
   ambientLight(105, 105, 130);
   location=false;
   smooth(233);
-  cam = new PeasyCam(this, distpcam);
+  cam = new PeasyCam(this, ddistance);
   cam.setMinimumDistance(-400);
   cam.setMaximumDistance(700);
-  //cam.setP
   
-  String COMx, COMlist = "";
 
-  println(Arduino.list());
+  //String COMx, COMlist = "";
+
+ // println(Arduino.list());
   PFont fontinput = createFont("arial", 14);
   noStroke();
   cp5 = new ControlP5(this);
+  ControlP5.printPublicMethodsFor(Pointer.class);
   cp5.enableShortcuts();
   myTextarea = cp5.addTextarea("txt")
     .setPosition(590, 15)
@@ -128,6 +131,9 @@ public void setup() {
     ;
 
   console = cp5.addConsole(myTextarea);
+  
+  cp5.getPointer().disable();
+  cp5.getPointer().set(width, height);
 
   cp5.addButton("VCC").setPosition(5, 5).setSize(40, 40).setLabel("on/off").setColorBackground(color(off));
   cp5.addButton("on").setPosition(45, 5).setLabel("On").setSize(20, 40).setVisible(false);  
@@ -136,8 +142,7 @@ public void setup() {
   cp5.addButton("cam").setPosition(600, 550).setSize(40, 20).setLabel("cam lock").setColorBackground(color(off));
   cp5.addButton("cam_on").setPosition(600, 570).setLabel("off").setSize(20, 10).setVisible(true).setMouseOver(true).setColorBackground(color(off));  
   cp5.addButton("cam_off").setPosition(620, 570).setLabel("on").setSize(20, 10).setVisible(true).setMouseOver(true).setColorBackground(color(on)); 
-  
-    
+      
   cp5.addButton("modes").setPosition(600, 355).setSize(40, 40).setLabel("views").setColorBackground(color(off));
   cp5.addButton("PitchRoatation").setPosition(600, 355).setLabel("PitchRotataion").setSize(20, 40).setVisible(false);  
   cp5.addButton("FreeRotation").setPosition(600, 355).setLabel("FreeRotation").setSize(20, 40).setVisible(false);  
@@ -164,7 +169,9 @@ public void setup() {
   cp5.addSlider("smomov").setRange(0, 100).setLabel("smooth steps").setValue(smomov).setPosition(45, 60).setSize(100, 30).setVisible(false).getTriggerEvent();    
 //test slider
  //cp5.addSlider("ground").setRange(180, 0).setValue(ground).setNumberOfTickMarks(180).setPosition(75, 365).setSize(470, 30).getTriggerEvent();  
-// cp5.addSlider("camdist").setRange(700, -700).setValue(distpcam).setPosition(260, 180).setSize(200, 10).getTriggerEvent();
+ cp5.addSlider("camdist").setRange(700, -400).setValue(fdistance).setPosition(260, 180).setSize(200, 10).getTriggerEvent();
+ cp5.addButton("setcam").setPosition(240, 200).setLabel("peasy Distance").setSize(20, 20);
+
   
 
   cp5.addSlider("ground").setMouseOver(true).setRange(180, 0).setValue(ground).setPosition(75, 565).setSize(470, 30).getTriggerEvent();
@@ -183,11 +190,11 @@ public void setup() {
   cp5.addSlider("above").setRange(150, 8).setValue(above).setPosition(245, 40).setSize(300, 30).getTriggerEvent() ; 
   cp5.addTextfield("aboveinput").setPosition(210, 40).setLabel("").setSize(30, 30).setFont(fontinput);
   cp5.addButton("setabove").setPosition(175, 40).setSize(30, 30).setLabel("OK").setOn().setId(4);
-
+/*
   cp5.addSlider("top").setRange(165, 10).setValue(top).setPosition(285, 5).setSize(295, 30).getTriggerEvent(); 
   cp5.addTextfield("topinput").setPosition(250, 5).setSize(30, 30).setLabel("").setFont(fontinput);
   cp5.addButton("setop").setPosition(215, 5).setSize(30, 30).setLabel("OK").setOn().setId(5);
-
+*/
   cp5.addSlider("claw").setRange(96, 150).setValue(claw).setPosition(650, 310).setSize(30, 180).getTriggerEvent();  
   cp5.addTextfield("clawinput").setPosition(650, 505).setSize(30, 30).setLabel("").setFont(fontinput);
   cp5.addButton("setclaw").setPosition(650, 540).setSize(30, 30).setLabel("OK").setOn().setId(6);
@@ -196,10 +203,8 @@ public void setup() {
   
   // press key 2 to change background to black
   cp5.mapKeyFor(new ControlKey() {public void keyEvent() {cam.setPitchRotationMode();}}, 'p');
-  
   // press key 1 and ALT to make circles visible
   cp5.mapKeyFor(new ControlKey() {public void keyEvent() {cam.setYawRotationMode();}}, 'y');
-  
   // press key 2 and ALT to hide circles
   cp5.mapKeyFor(new ControlKey() {public void keyEvent() {cam.setFreeRotationMode();}}, 'f'); 
   cp5.mapKeyFor(new ControlKey() {public void keyEvent() {cam.setRollRotationMode();}}, 'r');
@@ -261,6 +266,9 @@ public void setup() {
   cp5.setAutoDraw(false);
 }
 
+
+
+
 void mousePressed() {
   // print the current mouseoverlist on mouse pressed
  // campos[] = (float)getPosition();
@@ -269,7 +277,7 @@ void mousePressed() {
    // cam. rotateX(ground);
    //float position[]=cam.getPosition();
  //getLookAt()=cam.getPosition();
-  print("position: "+cam.getPosition());
+ // print("position: "+cam.getPosition());
 //print(\t camx "xpos"\t camy"ypos "\t camz"zpos");
 }
 
@@ -335,7 +343,7 @@ void controlEvent(ControlEvent theEvent) {
     cp5.getController("above").setValue(above);
     draw();   
     break;
-
+/*
     case(5):
     otop=top;
     if (topinput==null)
@@ -349,7 +357,7 @@ void controlEvent(ControlEvent theEvent) {
     cp5.getController("top").setValue(top);
     draw();
     break;
-
+*/
     case(6):
     oclaw=claw;
     if (clawinput==null)
@@ -369,7 +377,7 @@ void controlEvent(ControlEvent theEvent) {
     osec=sec;
     otec =tec;
     oabove=above;
-    otop=top;
+//    otop=top;
     oclaw=claw;
     if (groundinput==null)
       ground=(int)cp5.getController("ground").getValue();
@@ -377,7 +385,7 @@ void controlEvent(ControlEvent theEvent) {
     {
       groundinput= (String)cp5.getController("groundinput").getStringValue();
       ground=int(groundinput);
-      ground++;
+     // ground++;
     }
 
     if (secinput==null)
@@ -404,14 +412,14 @@ void controlEvent(ControlEvent theEvent) {
       above = int(aboveinput);
     }
 
-    if (topinput==null)
+ /*  if (topinput==null)
       top=(int)cp5.getController("top").getValue();
     else
     {      
       topinput = (String)cp5.getController("topinput").getStringValue();   
       top = int(topinput);
     }  
-
+*/
     if (clawinput==null)
       claw=(int)cp5.getController("claw").getValue();
     else
@@ -428,8 +436,8 @@ void controlEvent(ControlEvent theEvent) {
     cp5.getController("tec").setValue(tec);
     cp5.getController("above").setUpdate(true);
     cp5.getController("above").setValue(above);
-    cp5.getController("top").setUpdate(true);
-    cp5.getController("top").setValue(top);
+//    cp5.getController("top").setUpdate(true);
+//    cp5.getController("top").setValue(top);
     cp5.getController("claw").setUpdate(true);
     cp5.getController("claw").setValue(claw);
     draw();
@@ -444,11 +452,10 @@ void controlEvent(ControlEvent theEvent) {
 
 
 void draw() {
+    
    background(ControlP5.BLACK);
   // surface.setsize(720, 600, P3D);
-
   if(!location){
-  
   surface.setLocation(100, 100);
   location=true;
   }
@@ -465,7 +472,7 @@ void draw() {
  
  
   if (pground != ground || psec !=sec || ptec !=tec || pabove != above || pclaw != claw)
-    println(oground +"\t" + osec +"\t"+ otec+ "\t" +oabove+"\t" + otop + "\t"+ oclaw +"\t");
+    println(oground +"\t" + osec +"\t"+ otec+ "\t" +oabove+"\t" + oclaw +"\t");
   if (start==true)
   {
     if (ground> oground)
@@ -476,10 +483,10 @@ void draw() {
         oground++;
         arduino.servoWrite(2, oground);
        // cp5.getController("ground").setColorActive(77);
-        cp5.getController("ground").setUpdate(true);
+        cp5.getController("ground").isUpdate();
         cp5.getController("ground").setValue(oground);
     //    cp5.getController("ground").setColorValue(0);
-        println(oground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + top + "\t"+ claw +"\t");
+        println(oground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + claw +"\t");
         delay(smomov);
       }
     }
@@ -491,10 +498,11 @@ void draw() {
         oground--;
         arduino.servoWrite(2, oground); 
        // cp5.getController("ground").setColorActive(88);
-        cp5.getController("ground").setUpdate(true);
+        cp5.getController("ground").isUpdate();
         cp5.getController("ground").setValue(oground);
-        println(oground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + top + "\t"+ claw +"\t");
+        println(oground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + claw +"\t");
         delay(smomov);
+
       }
     }
     if (sec> osec)
@@ -506,7 +514,7 @@ void draw() {
         arduino.servoWrite(3, osec); 
         cp5.getController("sec").setUpdate(true);
         cp5.getController("sec").setValue(osec);
-        println(ground +"\t" + osec +"\t"+ tec+ "\t" +above+"\t" + top + "\t"+ claw +"\t");
+        println(ground +"\t" + osec +"\t"+ tec+ "\t" +above+"\t" + claw +"\t");
         delay(smomov);
       }
     }
@@ -519,7 +527,7 @@ void draw() {
         arduino.servoWrite(3, osec); 
         cp5.getController("sec").setUpdate(true);
         cp5.getController("sec").setValue(osec);
-        println(ground +"\t" + osec +"\t"+ tec+ "\t" +above+"\t" + top + "\t"+ claw +"\t");
+        println(ground +"\t" + osec +"\t"+ tec+ "\t" +above+"\t" + claw +"\t");
         delay(smomov);
       }
     }   
@@ -532,7 +540,7 @@ void draw() {
         arduino.servoWrite(4, otec); 
         cp5.getController("tec").setUpdate(true);
         cp5.getController("tec").setValue(otec);
-        println(ground +"\t" + sec +"\t"+ otec+ "\t" +above+"\t" + top + "\t"+ claw +"\t");
+        println(ground +"\t" + sec +"\t"+ otec+ "\t" +above+"\t" + claw +"\t");
         delay(smomov);
       }
     }
@@ -545,7 +553,7 @@ void draw() {
         arduino.servoWrite(4, otec); 
         cp5.getController("tec").setUpdate(true);
         cp5.getController("tec").setValue(otec);
-        println(ground +"\t" + sec +"\t"+ otec+ "\t" +above+"\t" + top + "\t"+ claw +"\t");
+        println(ground +"\t" + sec +"\t"+ otec+ "\t" +above+"\t" + claw +"\t");
         delay(smomov);
       }
     }  
@@ -558,7 +566,7 @@ void draw() {
         arduino.servoWrite(5, oabove); 
         cp5.getController("above").setUpdate(true);
         cp5.getController("above").setValue(oabove);
-        println(ground +"\t" + sec +"\t"+ tec+ "\t" +oabove+"\t" + top + "\t"+ claw +"\t");
+        println(ground +"\t" + sec +"\t"+ tec+ "\t" +oabove+"\t" + claw +"\t");
         delay(smomov);
       }
     }
@@ -571,11 +579,11 @@ void draw() {
         arduino.servoWrite(5, oabove); 
         cp5.getController("above").setUpdate(true);
         cp5.getController("above").setValue(oabove);
-        println(ground +"\t" + sec +"\t"+ tec+ "\t" +oabove+"\t" + top + "\t"+ claw +"\t");
+        println(ground +"\t" + sec +"\t"+ tec+ "\t" +oabove+"\t" + claw +"\t");
         delay(smomov);
       }
     } 
-    if (top> otop)
+  /*  if (top> otop)
     {
       int bet =top -otop;
       for (int q =0; q<bet; q++)
@@ -584,7 +592,7 @@ void draw() {
         arduino.servoWrite(9, otop); 
         cp5.getController("top").setUpdate(true);
         cp5.getController("top").setValue(otop);
-        println(ground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + otop + "\t"+ claw +"\t");
+        println(ground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + claw +"\t");
         delay(smomov);
       }
     }
@@ -597,10 +605,11 @@ void draw() {
         arduino.servoWrite(9, otop); 
         cp5.getController("top").setUpdate(true);
         cp5.getController("top").setValue(otop);
-        println(ground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + otop + "\t"+ claw +"\t");
+        println(ground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + claw +"\t");
         delay(smomov);
       }
-    }  
+    }
+   */ 
     if (claw> oclaw)
     {
       int bet =claw -oclaw;
@@ -610,7 +619,7 @@ void draw() {
         arduino.servoWrite(6, oclaw); 
         cp5.getController("claw").setUpdate(true);
         cp5.getController("claw").setValue(oclaw);
-        println(ground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + top + "\t"+ oclaw +"\t");
+        println(ground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + oclaw +"\t");
         delay(smomov);
       }
     }
@@ -625,18 +634,20 @@ void draw() {
         arduino.servoWrite(6, oclaw); 
         cp5.getController("claw").setUpdate(true);
         cp5.getController("claw").setValue(oclaw);
-        println(ground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + top + "\t"+ oclaw +"\t");
+        println(ground +"\t" + sec +"\t"+ tec+ "\t" +above+"\t" + oclaw +"\t");
         delay(smomov);
       }
     }  
 
 
     pground=ground;
-    cp5.getController("ground").setUpdate(true);
+    cp5.getController("ground").isUpdate();
     cp5.getController("ground").setValue(pground);
+
     psec=sec;
     cp5.getController("sec").setUpdate(true);
     cp5.getController("sec").setValue(psec);
+    
     ptec=tec;
     cp5.getController("tec").setUpdate(true);
     cp5.getController("tec").setValue(ptec);
@@ -644,7 +655,7 @@ void draw() {
     pabove=above;
     cp5.getController("above").setUpdate(true);
     cp5.getController("above").setValue(pabove);
-    ptop=top;
+   // ptop=top;
     pclaw=claw;
   } 
   else{
@@ -653,9 +664,9 @@ void draw() {
     osec=sec;
     otec=tec;
     oabove=above;
-    otop=top;
+ //   otop=top;
     oclaw=claw;
-    cp5.getController("ground").setUpdate(true);
+    cp5.getController("ground").isUpdate();
     cp5.getController("ground").setValue(ground);
     cp5.getController("sec").setUpdate(true);
     cp5.getController("sec").setValue(sec);
@@ -663,14 +674,14 @@ void draw() {
     cp5.getController("tec").setValue(tec);
     cp5.getController("above").setUpdate(true);
     cp5.getController("above").setValue(above);
-    cp5.getController("top").setUpdate(true);
-    cp5.getController("top").setValue(top);
+  //  cp5.getController("top").setUpdate(true);
+  //  cp5.getController("top").setValue(top);
     cp5.getController("claw").setUpdate(true);
     cp5.getController("claw").setValue(claw);
     start=true;
   }
 
-  robot();
+  robot(oground);
   gui();
 }
 
@@ -684,7 +695,7 @@ void gui() {
 }
 
 
-public void robot() {
+public void robot(int oground) {
 
 //float radius;
 //this float depth;  
@@ -733,7 +744,7 @@ public void robot() {
   //platte am 
   box(20, 2, 20 );
   translate(-5, 24,7);
-dofground();
+dofground(oground);
 
 dofsec();
   
@@ -782,8 +793,8 @@ public void getpos(int theValue)
   println(tec);
   print("above:");
   println(above);
-  print("top:");
-  println(top);
+//  print("top:");
+//  println(top);
   print("claw:");
   println(claw);
 }
@@ -848,10 +859,11 @@ public void PARK()
   cp5.getController("above").setUpdate(true);
   cp5.getController("above").setValue(above);
   delay(1000);
-  top =parktop;
+/*  top =parktop;
   cp5.getController("top").setUpdate(true);
   cp5.getController("top").setValue(top);
   delay(1000);
+*/  
   claw =parkclaw;
   cp5.getController("claw").setUpdate(true);
   cp5.getController("claw").setValue(claw);
@@ -968,7 +980,7 @@ public void set1s()
   s1sec =(int)cp5.getController("sec").getValue();
   s1tec =(int)cp5.getController("tec").getValue();
   s1above =(int)cp5.getController("above").getValue();
-  s1top =(int)cp5.getController("top").getValue();
+ // s1top =(int)cp5.getController("top").getValue();
   s1claw =(int)cp5.getController("claw").getValue();
 }
 
@@ -978,7 +990,7 @@ public void set1l ( )
   sec=s1sec;
   tec=s1tec;
   above=s1above;
-  top=s1top;
+//  top=s1top;
   claw=s1claw;
   cp5.getController("ground").setUpdate(true);
   cp5.getController("ground").setValue(ground);
@@ -988,8 +1000,8 @@ public void set1l ( )
   cp5.getController("tec").setValue(tec);
   cp5.getController("above").setUpdate(true);
   cp5.getController("above").setValue(above);
-  cp5.getController("top").setUpdate(true);
-  cp5.getController("top").setValue(top);
+//  cp5.getController("top").setUpdate(true);
+//  cp5.getController("top").setValue(top);
   cp5.getController("claw").setUpdate(true);
   cp5.getController("claw").setValue(claw);
 }
@@ -1016,7 +1028,7 @@ public void set2s ()
   s2sec =(int)cp5.getController("sec").getValue();
   s2tec =(int)cp5.getController("tec").getValue();
   s2above =(int)cp5.getController("above").getValue();
-  s2top =(int)cp5.getController("top").getValue();
+//  s2top =(int)cp5.getController("top").getValue();
   s2claw =(int)cp5.getController("claw").getValue();
 }
 
@@ -1026,7 +1038,7 @@ public void set2l ( )
   sec=s2sec;
   tec=s2tec;
   above=s2above;
-  top=s2top;
+//  top=s2top;
   claw=s2claw;
   cp5.getController("ground").setUpdate(true);
   cp5.getController("ground").setValue(ground);
@@ -1036,8 +1048,8 @@ public void set2l ( )
   cp5.getController("tec").setValue(tec);
   cp5.getController("above").setUpdate(true);
   cp5.getController("above").setValue(above);
-  cp5.getController("top").setUpdate(true);
-  cp5.getController("top").setValue(top);
+//  cp5.getController("top").setUpdate(true);
+//  cp5.getController("top").setValue(top);
   cp5.getController("claw").setUpdate(true);
   cp5.getController("claw").setValue(claw);
 }
@@ -1066,7 +1078,7 @@ public void set3s ()
   s2sec =(int)cp5.getController("sec").getValue();
   s3tec =(int)cp5.getController("tec").getValue();
   s3above =(int)cp5.getController("above").getValue();
-  s3top =(int)cp5.getController("top").getValue();
+//  s3top =(int)cp5.getController("top").getValue();
   s3claw =(int)cp5.getController("claw").getValue();
 }
 
@@ -1076,7 +1088,7 @@ public void set3l ( )
   sec=s3sec;
   tec=s3tec;
   above=s3above;
-  top=s3top;
+//  top=s3top;
   claw=s3claw;
   cp5.getController("ground").setUpdate(true);
   cp5.getController("ground").setValue(ground);
@@ -1086,8 +1098,8 @@ public void set3l ( )
   cp5.getController("tec").setValue(tec);
   cp5.getController("above").setUpdate(true);
   cp5.getController("above").setValue(above);
-  cp5.getController("top").setUpdate(true);
-  cp5.getController("top").setValue(top);
+//  cp5.getController("top").setUpdate(true);
+//  cp5.getController("top").setValue(top);
   cp5.getController("claw").setUpdate(true);
   cp5.getController("claw").setValue(claw);
 }
@@ -1116,7 +1128,7 @@ public void set4s ()
   s4sec =(int)cp5.getController("sec").getValue();
   s4tec =(int)cp5.getController("tec").getValue();
   s4above =(int)cp5.getController("above").getValue();
-  s4top =(int)cp5.getController("top").getValue();
+//  s4top =(int)cp5.getController("top").getValue();
   s4claw =(int)cp5.getController("claw").getValue();
 }
 
@@ -1126,7 +1138,7 @@ public void set4l ( )
   sec=s4sec;
   tec=s4tec;
   above=s4above;
-  top=s4top;
+//  top=s4top;
   claw=s4claw;
   cp5.getController("ground").setUpdate(true);
   cp5.getController("ground").setValue(ground);
@@ -1136,8 +1148,8 @@ public void set4l ( )
   cp5.getController("tec").setValue(tec);
   cp5.getController("above").setUpdate(true);
   cp5.getController("above").setValue(above);
-  cp5.getController("top").setUpdate(true);
-  cp5.getController("top").setValue(top);
+//  cp5.getController("top").setUpdate(true);
+//  cp5.getController("top").setValue(top);
   cp5.getController("claw").setUpdate(true);
   cp5.getController("claw").setValue(claw);
 }
@@ -1196,7 +1208,7 @@ void drawCylinder( int sides, float r, float h)
 
 }
 
-void dofground(){
+void dofground(int oground){
  //anfang dof
     //servo selbst
  float  crsground = 90* (PI/180);
@@ -1218,7 +1230,7 @@ stroke(cp5.isMouseOver(cp5.getController("ground")) ? strokehover:color(dofgroun
   
  
   rotateZ(crsground);
-    float rad = radians(ground);
+    float rad = radians(oground);
   rotateZ(rad * -1);
 // zylynder( 2,17);
      drawCylinder( 30,  2, 40 );
@@ -1643,3 +1655,13 @@ void drawdof(int tx , int ty ,int tz, color coldof, int dang)
 }
 
 */
+/**
+ * ControlP5 Autodetect Fields
+ *
+ * test sketch, controller values will automatically be set 
+ * to its corresponding sketch fields.
+ *
+ * by Andreas Schlegel, 2011
+ * www.sojamo.de/libraries/controlp5
+ *
+ */
