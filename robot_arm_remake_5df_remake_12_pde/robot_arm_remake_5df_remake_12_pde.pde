@@ -1,3 +1,5 @@
+import hpglgraphics.*;
+
 import cc.arduino.*;
 import org.firmata.*;
 
@@ -112,7 +114,7 @@ public void setup() {
   ambientLight(105, 105, 130);
   location=false;
   smooth(233);
-  cam = new PeasyCam(this, 400);
+  cam = new PeasyCam(this, 50, 50, 50, ddistance);
   cam.setMinimumDistance(-400);
   cam.setMaximumDistance(700);
   
@@ -172,11 +174,12 @@ public void setup() {
   cp5.addSlider("smomov").setRange(0, 100).setLabel("smooth steps").setValue(smomov).setPosition(45, 60).setSize(100, 30).setVisible(false).getTriggerEvent();    
 //test slider
  //cp5.addSlider("ground").setRange(180, 0).setValue(ground).setNumberOfTickMarks(180).setPosition(75, 365).setSize(470, 30).getTriggerEvent();  
- cp5.addSlider("camdist").setRange(700, -400).setValue(fdistance).setPosition(260, 180).setSize(200, 10).getTriggerEvent();
+ cp5.addSlider("camdist").setRange(700, -400).setValue(fdistance).setPosition(260, 180).setSize(200, 10);
  cp5.addButton("setcam").setPosition(240, 200).setLabel("peasy Distance").setSize(20, 20);
 
-  
 
+  cp5.addButton("centerground").setPosition(485, 545).setLabel("center").setSize(20, 10);
+  //{look = cam.getLookAt();camera.getLookAt();}
   cp5.addSlider("ground").setMouseOver(true).setRange(180, 0).setValue(ground).setPosition(75, 565).setSize(470, 30).getTriggerEvent();
   cp5.addTextfield("groundinput").setPosition(40, 565).setLabel("ground").setSize(30, 30).setFont(fontinput);
   cp5.addButton("setground").setPosition(5, 565).setSize(30, 30).setLabel("OK").setOn().setId(1);    
@@ -275,7 +278,12 @@ public void setup() {
 
 }
 
-
+public void camdist(){
+  ddistance=(double)cp5.getController("camdist").getValue();
+  println("DOUBLE:"+ ddistance);
+  println("FLOAT" +fdistance);
+  
+}
 
 
 void mousePressed() {
@@ -286,7 +294,7 @@ void mousePressed() {
    // cam. rotateX(ground);
    //float position[]=cam.getPosition();
  //getLookAt()=cam.getPosition();
- // print("position: "+cam.getPosition());
+  print("position: "+cam.getPosition());
 //print(\t camx "xpos"\t camy"ypos "\t camz"zpos");
 }
 
@@ -831,21 +839,36 @@ public void VCC () {
   {
     println("POWER OFF");
     println("setting servos to park position updating servos");
+  
     println("Ground servo:"+ parkground);
+    cp5.getController("ground").isUpdate();
+    cp5.getController("ground").setValue(parkground);
     arduino.servoWrite(2, parkground);
     delay(100);
     println("SEC servo:"+ parksec);
+    cp5.getController("sec").isUpdate();
+    cp5.getController("sec").setValue(parksec);
     arduino.servoWrite(3, parksec);
     delay(100);
-     println("TEC servo:"+ parktec);
+    
+    println("TEC servo:"+ parktec);
+    cp5.getController("tec").isUpdate();
+    cp5.getController("tec").setValue(parktec);
     arduino.servoWrite(4, parktec);
     delay(100);
+    
     println("ABOVE servo:"+ parkabove);
+    cp5.getController("above").isUpdate();
+    cp5.getController("above").setValue(parkabove);
     arduino.servoWrite(5, parkabove);
     delay(100);
+    
     println("CLAW servo:"+ parkclaw);
+    cp5.getController("claw").isUpdate();
+    cp5.getController("claw").setValue(parkclaw);
     arduino.servoWrite(6, parkclaw);
     delay(100);
+    
     println("System OFF");
 
     cp5.getController("VCC").setColorBackground(color(off));
@@ -867,8 +890,12 @@ public void VCC () {
 }
 }
 
-
 /*
+private PeasyDragHandler centerDragHandler = panHandler;
+public void setCenterDragHandler(final PeasyDragHandler handler) {
+    centerDragHandler = handler;
+  }
+
 public void setground(int theValue)
  {
  ground = groundi;
@@ -917,9 +944,16 @@ public void PARK()
 }
 
 public void cam_on(){
-     cam.setActive(true);
+     
+  cam.setActive(true);
      cp5.getController("cam_on").setVisible(true);
 
+//posx, posy, posz
+//float positon[]{cam.getPosition()};
+//CameraState state = camera.getState(); // get a serializable settings object for current state
+//camera.setState(CameraState state);
+//camera.setCenterDragHandler(PeasyDragHandler handler);
+//gluLookAt();
 }
 
 
