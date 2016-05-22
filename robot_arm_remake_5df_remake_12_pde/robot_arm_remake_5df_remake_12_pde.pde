@@ -112,7 +112,7 @@ public void setup() {
   ambientLight(105, 105, 130);
   location=false;
   smooth(233);
-  cam = new PeasyCam(this, ddistance);
+  cam = new PeasyCam(this, 400);
   cam.setMinimumDistance(-400);
   cam.setMaximumDistance(700);
   
@@ -143,13 +143,13 @@ public void setup() {
   cp5.addButton("off").setPosition(45, 5).setLabel("Off").setSize(20, 40).setVisible(true);  
   
   cp5.addButton("cam").setPosition(600, 550).setSize(40, 20).setLabel("cam lock").setColorBackground(color(off));
-  cp5.addButton("cam_on").setPosition(600, 570).setLabel("off").setSize(20, 10).setVisible(true).setMouseOver(true).setColorBackground(color(off));  
-  cp5.addButton("cam_off").setPosition(620, 570).setLabel("on").setSize(20, 10).setVisible(true).setMouseOver(true).setColorBackground(color(on)); 
+  cp5.addButton("cam_on").setPosition(600, 570).setLabel("off").setSize(20, 10).setVisible(true).setColorBackground(color(on));  
+  cp5.addButton("cam_off").setPosition(620, 570).setLabel("on").setSize(20, 10).setVisible(true).setColorBackground(color(off)); 
       
-  cp5.addButton("modes").setPosition(600, 355).setSize(40, 40).setLabel("views").setColorBackground(color(off));
-  cp5.addButton("PitchRoatation").setPosition(600, 355).setLabel("PitchRotataion").setSize(20, 40).setVisible(false);  
-  cp5.addButton("FreeRotation").setPosition(600, 355).setLabel("FreeRotation").setSize(20, 40).setVisible(false);  
-  cp5.addButton("RollRotation").setPosition(600, 355).setLabel("RollRotation").setSize(20, 40).setVisible(false);
+  cp5.addButton("modes").setPosition(600, 355).setSize(40, 20).setLabel("views").setColorBackground(color(off));
+  cp5.addButton("PitchRoatation").setPosition(600, 365).setLabel("PitchRotataion").setSize(20, 40).setVisible(false);  
+  cp5.addButton("FreeRotation").setPosition(600, 365).setLabel("FreeRotation").setSize(20, 40).setVisible(false);  
+  cp5.addButton("RollRotation").setPosition(600, 365).setLabel("RollRotation").setSize(20, 40).setVisible(false);
   
   cp5.addButton("getpos").setLabel("GET POS").setPosition(5, 295).setSize(40, 30).update();  
   cp5.addButton("con").setPosition(5, 225).setSize(40, 30);
@@ -255,6 +255,11 @@ public void setup() {
    
   //    arduino = new Arduino(this, Arduino.list()[1], 57600);
   //   arduino = new Arduino(this, "COM4", 57600);
+  ground=parkground;
+  sec=parksec;
+  tec=parktec;
+  above=parkabove;
+  claw=parkclaw;
  arduino = new Arduino(this, Arduino.list()[1], 57600);
   // arduino = new Arduino(this, "/dev/ttyACM0", 57600);
   arduino.pinMode(2, Arduino.SERVO); //ground
@@ -265,8 +270,9 @@ public void setup() {
 //  arduino.pinMode(1, Arduino.SERVO); //ground
   arduino.pinMode(vccPin, Arduino.OUTPUT);
   arduino.digitalWrite(vccPin, Arduino.HIGH);
-
+  
   cp5.setAutoDraw(false);
+
 }
 
 
@@ -374,6 +380,7 @@ void controlEvent(ControlEvent theEvent) {
     cp5.getController("claw").setValue(claw);
     draw();
     break;
+    
     //update all
     case(7):
     oground=ground;
@@ -462,21 +469,35 @@ void draw() {
   surface.setLocation(100, 100);
   location=true;
   }
-  if(cp5.isMouseOver())
-  if(cp5.isMouseOver()) {
-    cam.setActive(false);
+ // if(cp5.getController("ground").isMouseOver() || cp5.getController("ground").isMouseOver()){
+  if(true==cp5.getController("cam_on").isVisible()){
+   if(cp5.isMouseOver()) {
+   cam.setActive(false);
+//   cam_off();
     fill(hover);
   }
   else {
     fill(128);
-    cam.setActive(true);
+//   cam_on();
+  cam.setActive(true);
+    //cp5.getController("cam_on").setVisible(true);
+  ///cp5.getController("cam_ff").setVisible(false);
   }
+  }
+else{ 
+ if(cp5.isMouseOver())
+ {
+       fill(hover);
 
+ }
+   else 
+    fill(128);
+}
  
  
   if (pground != ground || psec !=sec || ptec !=tec || pabove != above || pclaw != claw)
     println(oground +"\t" + osec +"\t"+ otec+ "\t" +oabove+"\t" + oclaw +"\t");
-  if (start==true)
+  if (start)
   {
     if (ground> oground)
     {
@@ -645,7 +666,7 @@ void draw() {
 
     pground=ground;
     cp5.getController("ground").isUpdate();
-    cp5.getController("ground").setValue(pground);
+    cp5.getController("ground").setValue(oground);
 
     psec=sec;
     cp5.getController("sec").setUpdate(true);
@@ -670,21 +691,21 @@ void draw() {
  //   otop=top;
     oclaw=claw;
     cp5.getController("ground").isUpdate();
-    cp5.getController("ground").setValue(ground);
-    cp5.getController("sec").setUpdate(true);
-    cp5.getController("sec").setValue(sec);
-    cp5.getController("tec").setUpdate(true);
-    cp5.getController("tec").setValue(tec);
-    cp5.getController("above").setUpdate(true);
-    cp5.getController("above").setValue(above);
+    cp5.getController("ground").setValue(parkground);
+    cp5.getController("sec").isUpdate();
+    cp5.getController("sec").setValue(parksec);
+    cp5.getController("tec").isUpdate();
+    cp5.getController("tec").setValue(parktec);
+    cp5.getController("above").isUpdate();
+    cp5.getController("above").setValue(parkabove);
   //  cp5.getController("top").setUpdate(true);
   //  cp5.getController("top").setValue(top);
-    cp5.getController("claw").setUpdate(true);
-    cp5.getController("claw").setValue(claw);
+    cp5.getController("claw").isUpdate();
+    cp5.getController("claw").setValue(parkclaw);
     start=true;
   }
 
-  robot(oground);
+  robot(oground, osec, otec, oabove, oclaw);
   gui();
 }
 
@@ -698,7 +719,7 @@ void gui() {
 }
 
 
-public void robot(int oground) {
+public void robot(int oground, int osec, int otec, int oabove, int oclaw) {
 
 //float radius;
 //this float depth;  
@@ -749,18 +770,18 @@ public void robot(int oground) {
   translate(-5, 24,7);
 dofground(oground);
 
-dofsec();
+dofsec(osec);
   
   translate(0,65,20);
-doftec();
+doftec(otec);
 rotateX(90*(PI/180));
 
 rotateZ(90*(PI/180));
-dofabove();
+dofabove(oabove);
 //drawdof(22 ,5 ,-40,#FFEBEF, (above * 90));
 
 translate( 0,25,20);
-dofclaw();
+dofclaw(oclaw);
   popMatrix();
   }
 
@@ -809,6 +830,24 @@ public void VCC () {
   if (true==cp5.getController("on").isVisible())
   {
     println("POWER OFF");
+    println("setting servos to park position updating servos");
+    println("Ground servo:"+ parkground);
+    arduino.servoWrite(2, parkground);
+    delay(100);
+    println("SEC servo:"+ parksec);
+    arduino.servoWrite(3, parksec);
+    delay(100);
+     println("TEC servo:"+ parktec);
+    arduino.servoWrite(4, parktec);
+    delay(100);
+    println("ABOVE servo:"+ parkabove);
+    arduino.servoWrite(5, parkabove);
+    delay(100);
+    println("CLAW servo:"+ parkclaw);
+    arduino.servoWrite(6, parkclaw);
+    delay(100);
+    println("System OFF");
+
     cp5.getController("VCC").setColorBackground(color(off));
     cp5.getController("off").setVisible(true);
     cp5.getController("on").setVisible(false);
@@ -879,41 +918,37 @@ public void PARK()
 
 public void cam_on(){
      cam.setActive(true);
+     cp5.getController("cam_on").setVisible(true);
 
 }
 
 
 public void cam_off(){
     cam.setActive(false);
+     cp5.getController("cam_on").setVisible(false);
+    
 }
 
-/*
+
 public void cam () {
-  if ((true==cp5.getController("cam_on").isVisible()) && (false==cp5.getController("cam_off").isVisible()))
+  if (cp5.getController("cam_on").isVisible())
   {
     println("PeasyCam OFF");
     cp5.getController("cam_on").setVisible(false);
     cp5.getController("cam_off").setVisible(true);
-    cp5.getController("cam_off").setColorBackground(color(off));
-    cp5.getController("cam_off").setLabel(" ");
-  //  arduino.digitalWrite(vccPin, Arduino.HIGH);
+    cp5.getController("cam").setColorBackground(color(off));
+//  arduino.digitalWrite(vccPin, Arduino.HIGH);
     cam.setActive(false);
   } 
-    if ((false==cp5.getController("cam_on").isVisible()) &&(true== cp5.getController("cam_off").isVisible()))
-  {
+    else{
     println("PeasyCam ON");
     cp5.getController("cam_off").setVisible(false); 
     cp5.getController("cam_on").setVisible(true);
-    cp5.getController("cam_on").setColorBackground(color(on));
-    cp5.getController("cam_on").setLabel("");
-    //cp5.getController("cam").setMouseOver()
-    cam.setActive(true);
-// arduino.digitalWrite(vccPin, Arduino.LOW);
-  }
-  else
-  println("error");
-}
-*/
+    cp5.getController("cam").setColorBackground(color(on));
+    cam.setActive(true);  }
+   }
+
+
 public void modes () {
   if (true==cp5.getController("PitchRoatation").isVisible())
   {
@@ -1263,7 +1298,7 @@ stroke(cp5.isMouseOver(cp5.getController("ground")) ? strokehover:color(dofgroun
    
 }
   
-void dofsec()
+void dofsec(int osec)
 {
 //float  crssec = 270* (PI/180);
 float  crssecx = 270* (PI/180);
@@ -1288,7 +1323,7 @@ strokeWeight(2);
 fill(dofsecfill);
 stroke(cp5.isMouseOver(cp5.getController("sec")) ? strokehover:color(dofsecstroke) );
 rotateZ(crssecz);
-float rad = radians(sec);
+float rad = radians(osec);
 rotateZ(rad * -1);
 drawCylinder( 30,  2, 40 );
 translate(0,15,19);
@@ -1319,7 +1354,7 @@ box(10,40,2 );
 }
 
 
-void doftec()
+void doftec(int otec)
 {
  //float  crssec = 270* (PI/180);
 // float  crstecx = 270* (PI/180);
@@ -1362,7 +1397,7 @@ stroke(cp5.isMouseOver(cp5.getController("tec")) ? strokehover:color(doftecstrok
  fill(doftecfill);
 //  rotateZ(crstecz);
 
- float rad = radians(tec+180);
+ float rad = radians(otec+180);
  rotateZ((-rad) * -1);
  drawCylinder( 30,  2, 40 );   
   // stroke(doftecstroke);
@@ -1388,7 +1423,7 @@ stroke(cp5.isMouseOver(cp5.getController("tec")) ? strokehover:color(doftecstrok
  */
 }
 
-void dofabove(){
+void dofabove(int oabove){
     translate(-11,10,6);
     float acrad = 270*(PI/180); 
     strokeWeight(1);
@@ -1402,7 +1437,7 @@ void dofabove(){
     strokeWeight(1);
     fill(dofabovefill);
     stroke(dofabovestroke);
-    float rad = radians(above);
+    float rad = radians(oabove);
     rotateZ((-rad)-acrad);
      drawCylinder( 30,  2, 40 );
      translate(0,15,19);
@@ -1425,7 +1460,7 @@ void dofabove(){
      box(10,40,2 );
 }
 
-void dofclaw(){
+void dofclaw(int oclaw){
   pushMatrix();
     strokeWeight(1);
     fill(#FF0D1D);   
@@ -1491,7 +1526,7 @@ popMatrix();
 translate(22,2,0);
 pushMatrix();
 translate(-1,0,3);
-    rotate(radians(claw-25));
+    rotate(radians(oclaw-25));
     //rotateZ((claw-45)*(PI/180));
     translate(0,0,-2);
     
@@ -1526,7 +1561,7 @@ popMatrix();
      //radians(45*PI);
 pushMatrix();
     translate(2,-50,3);
-  rotate(radians((-1)*(claw-25)));
+  rotate(radians((-1)*(oclaw-25)));
   //  rotateZ(((claw+90)*(-1))*(PI/180));
     //rotateZ(90);
 translate(0,0,-2);
