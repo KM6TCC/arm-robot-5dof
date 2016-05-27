@@ -1,5 +1,4 @@
 import hpglgraphics.*;
-
 import cc.arduino.*;
 import org.firmata.*;
 
@@ -105,10 +104,8 @@ color on = color(8, 52, 255);
 public void setup() {  
   size(720, 600, P3D);
   surface.setTitle("arm-robot-5dof");
-  //
   surface.setResizable(true);
   //fullScreen(P3D,1);
- 
   frameRate(framefps);
   directionalLight(166, 166, 196, -60, -60, -60);
   ambientLight(105, 105, 130);
@@ -139,7 +136,6 @@ public void setup() {
   
   cp5.getPointer().disable();
   cp5.getPointer().set(width, height);
-
   cp5.addButton("VCC").setPosition(5, 5).setSize(40, 40).setLabel("on/off").setColorBackground(color(off));
   cp5.addButton("on").setPosition(45, 5).setLabel("On").setSize(20, 40).setVisible(false);  
   cp5.addButton("off").setPosition(45, 5).setLabel("Off").setSize(20, 40).setVisible(true);  
@@ -255,7 +251,7 @@ public void setup() {
    exit();
    }
   */ 
-   
+
   //    arduino = new Arduino(this, Arduino.list()[1], 57600);
   //   arduino = new Arduino(this, "COM4", 57600);
   ground=parkground;
@@ -264,15 +260,16 @@ public void setup() {
   above=parkabove;
   claw=parkclaw;
  arduino = new Arduino(this, Arduino.list()[1], 57600);
-  // arduino = new Arduino(this, "/dev/ttyACM0", 57600);
-  arduino.pinMode(2, Arduino.SERVO); //ground
-  arduino.pinMode(3, Arduino.SERVO);// sec
-  arduino.pinMode(4, Arduino.SERVO);// tec
-  arduino.pinMode(5, Arduino.SERVO); //above
-  arduino.pinMode(6, Arduino.SERVO); //claw
+ arduino.pinMode(vccPin, Arduino.OUTPUT);
+ arduino.digitalWrite(vccPin, Arduino.HIGH);
+ // arduino = new Arduino(this, "/dev/ttyACM0", 57600);
+ arduino.pinMode(2, Arduino.SERVO); //ground
+ arduino.pinMode(3, Arduino.SERVO);// sec
+ arduino.pinMode(4, Arduino.SERVO);// tec
+ arduino.pinMode(5, Arduino.SERVO); //above
+ arduino.pinMode(6, Arduino.SERVO); //claw
 //  arduino.pinMode(1, Arduino.SERVO); //ground
-  arduino.pinMode(vccPin, Arduino.OUTPUT);
-  arduino.digitalWrite(vccPin, Arduino.HIGH);
+
   
   cp5.setAutoDraw(false);
 
@@ -470,7 +467,7 @@ void controlEvent(ControlEvent theEvent) {
 
 
 void draw() {
-    
+
    background(ControlP5.BLACK);
   // surface.setsize(720, 600, P3D);
   if(!location){
@@ -492,7 +489,7 @@ void draw() {
   ///cp5.getController("cam_ff").setVisible(false);
   }
   }
-else{ 
+else{
  if(cp5.isMouseOver())
  {
        fill(hover);
@@ -837,13 +834,18 @@ public void getpos(int theValue)
 public void VCC () {
   if (true==cp5.getController("on").isVisible())
   {
-    println("POWER OFF");
-    println("setting servos to park position updating servos");
-  
+   println("POWER OFF");
+   println("setting servos to park position updating servos");
+   delay(500);
+   ground=parkground;
+   cp5.getController("setground").setId(1);    
+  /*
     println("Ground servo:"+ parkground);
+    cp5.getController(groundinput).
     cp5.getController("ground").isUpdate();
     cp5.getController("ground").setValue(parkground);
     arduino.servoWrite(2, parkground);
+    
     delay(100);
     println("SEC servo:"+ parksec);
     cp5.getController("sec").isUpdate();
@@ -868,19 +870,37 @@ public void VCC () {
     cp5.getController("claw").setValue(parkclaw);
     arduino.servoWrite(6, parkclaw);
     delay(100);
-    
-    println("System OFF");
+    */
+    delay(500);
+    sec=parksec;
+    cp5.getController("setsec").setId(2);    
+    delay(500);
+    tec=parktec;
+    cp5.getController("settec").setId(3);    
+    delay(500);
+    above=parkabove;
+    cp5.getController("setabove").setId(4);
+    delay(500);
+    claw=parkclaw;
+    cp5.getController("setclaw").setId(6);
 
+    println("System OFF");
+    cp5.getController("cam").setColorBackground(color(off));
     cp5.getController("VCC").setColorBackground(color(off));
     cp5.getController("off").setVisible(true);
     cp5.getController("on").setVisible(false);
     arduino.digitalWrite(vccPin, Arduino.HIGH);
-  } else
+  }
+    if (false==cp5.getController("on").isVisible())
+
+//  else
   {
     println("POWER ON");
     cp5.getController("VCC").setColorBackground(color(on));
     cp5.getController("off").setVisible(false); 
-    cp5.getController("on").setVisible(true); 
+    cp5.getController("on").setVisible(true);
+    cp5.getController("cam").setColorBackground(color(on));
+
     arduino.digitalWrite(vccPin, Arduino.LOW);
     arduino.servoWrite(2, parkground);
     arduino.servoWrite(3, parksec);
@@ -974,17 +994,20 @@ public void cam () {
 //  arduino.digitalWrite(vccPin, Arduino.HIGH);
     cam.setActive(false);
   } 
-    else{
+    else
+    {
     println("PeasyCam ON");
     cp5.getController("cam_off").setVisible(false); 
     cp5.getController("cam_on").setVisible(true);
     cp5.getController("cam").setColorBackground(color(on));
-    cam.setActive(true);  }
-   }
+    cam.setActive(true);  
+    }
+  }
 
 
+/*
 public void modes () {
-  if (true==cp5.getController("PitchRoatation").isVisible())
+  if (off==cp5.getController("modes").Color.Background())
   {
     cp5.getController("FreeRotation").setColorBackground(color(on));
     println("FreeRotationMode");
@@ -1016,7 +1039,7 @@ if (true==cp5.getController("RollRotation").isVisible())
  cp5.getController("modes").setColorBackground(color(off));
  }
 }
-
+*/
 public void setmov ()
 {
   if (true==cp5.getController("smomov").isVisible())
